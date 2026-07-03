@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - REDIS_URL=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RATE_LIMIT_RPS=5.0
+      - RATE_LIMIT_BURST=10
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
