@@ -14,6 +14,7 @@ type Config struct {
 	GeminiAPIKey   string
 	RateLimitRPS   float64
 	RateLimitBurst int
+	AllowedOrigin  string
 }
 
 // Load reads environmental variables, applies defaults, and validates required keys.
@@ -52,11 +53,17 @@ func Load() (*Config, error) {
 		}
 	}
 
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "*" // Default to allowing all origins
+	}
+
 	return &Config{
 		Port:           port,
 		RedisURL:       redisURL,
 		GeminiAPIKey:   geminiAPIKey,
 		RateLimitRPS:   rps,
 		RateLimitBurst: burst,
+		AllowedOrigin:  allowedOrigin,
 	}, nil
 }

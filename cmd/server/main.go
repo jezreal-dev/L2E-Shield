@@ -6,6 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/jezrealdev/l2e-shield/internal/cache"
 	"github.com/jezrealdev/l2e-shield/internal/config"
@@ -48,15 +51,43 @@ func main() {
 
 	proxyHandler := handler.HandleProxy(redisCache, cfg.GeminiAPIKey)
 	rateLimitMiddleware := middleware.RateLimit(redisCache, cfg.RateLimitRPS, cfg.RateLimitBurst)
+	corsMiddleware := middleware.CORS(cfg.AllowedOrigin)
 
 	mux.Handle("/v1/chat", rateLimitMiddleware(http.HandlerFunc(proxyHandler)))
 
-	loggedRouter := middleware.Logging(mux)
+	// Stack middlewares: Logging -> CORS -> Multiplexer
+	finalRouter := middleware.Logging(corsMiddleware(mux))
 
-	slog.Info(fmt.Sprintf("server listening on port %s", cfg.Port))
-	serverErr := http.ListenAndServe(":"+cfg.Port, loggedRouter)
-	if serverErr != nil {
-		slog.Error("http server failed to listen", "error", serverErr)
+	server := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      finalRouter,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	// Server shutdown channel
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		slog.Info(fmt.Sprintf("server listening on port %s", cfg.Port))
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("http server failed to listen", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	<-stop
+	slog.Info("shutting down gracefully, pressing Ctrl+C again will force exit")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		slog.Error("server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
+
+	slog.Info("server exited cleanly")
 }
