@@ -1,3 +1,4 @@
+// Package config parses and validates environmental settings for the proxy.
 package config
 
 import (
@@ -6,6 +7,7 @@ import (
 	"strconv"
 )
 
+// Config holds the application settings loaded from the environment.
 type Config struct {
 	Port           string
 	RedisURL       string
@@ -14,6 +16,8 @@ type Config struct {
 	RateLimitBurst int
 }
 
+// Load reads environmental variables, applies defaults, and validates required keys.
+// It returns an error if any essential variable like GEMINI_API_KEY is missing.
 func Load() (*Config, error) {
 	port := os.Getenv("PORT")
 	if port == "" {

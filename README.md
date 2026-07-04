@@ -1,5 +1,10 @@
 # L2E-Shield Go Proxy
 
+![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=for-the-badge&logo=go)
+![Docker Supported](https://img.shields.io/badge/Docker-Supported-2496ED?style=for-the-badge&logo=docker)
+![Redis Required](https://img.shields.io/badge/Redis-Required-DC382D?style=for-the-badge&logo=redis)
+![License MIT](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)
+
 L2E-Shield is a high-performance Go proxy gateway designed to shield LLM endpoints from malicious prompts and denial-of-wallet exhaustion attacks.
 
 ## Key Capabilities

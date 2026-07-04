@@ -1,3 +1,4 @@
+// Package middleware provides HTTP interceptors for rate limiting and logging.
 package middleware
 
 import (
@@ -24,6 +25,8 @@ func (rw *responseWriter) WriteHeader(code int) {
 	}
 }
 
+// Logging is an HTTP middleware that wraps the handler to record request method,
+// path, HTTP status code, and the total duration using the standard slog package.
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

@@ -11,6 +11,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// RateLimit provides an HTTP middleware that limits the number of requests per IP address
+// using a sliding window algorithm backed by Redis Sorted Sets (ZSET).
 func RateLimit(c *cache.Cache, rps float64, burst int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

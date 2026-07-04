@@ -1,3 +1,4 @@
+// Package handler provides the HTTP handlers for processing proxy requests.
 package handler
 
 import (
@@ -14,22 +15,28 @@ import (
 	"github.com/jezrealdev/l2e-shield/internal/security"
 )
 
+// ChatRequest represents the standard JSON payload structure for an AI chat request.
 type ChatRequest struct {
 	Contents []Content `json:"contents"`
 }
 
+// Content holds the parts of the chat payload.
 type Content struct {
 	Parts []Part `json:"parts"`
 }
 
+// Part contains the actual text string sent by the user.
 type Part struct {
 	Text string `json:"text"`
 }
 
+// ErrorResponse defines the JSON structure returned when the proxy rejects a request.
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// HandleProxy acts as the main gateway interface. It intercepts requests,
+// evaluates prompt security, handles cache lookups, and forwards valid payloads to the Gemini API.
 func HandleProxy(c *cache.Cache, geminiAPIKey string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
